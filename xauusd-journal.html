@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XAU/USD Trading Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <!-- ===================== STYLES ===================== -->
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg:        #0a0b0e;
+      --surface:   #111318;
+      --card:      #16181f;
+      --border:    #232635;
+      --accent:    #f5c842;
+      --accent2:   #e8a800;
+      --green:     #2ecc71;
+      --green-dim: #1a4a30;
+      --red:       #e74c3c;
+      --red-dim:   #4a1a1a;
+      --yellow:    #f39c12;
+      --text:      #e8eaf0;
+      --muted:     #6b7280;
+      --mono:      'Space Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Layout ── */
+    .wrapper {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,11,14,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo-text span { color: var(--accent); }
+    .header-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* ── Section grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+    /* ── Form ── */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    input, select, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245,200,66,0.1);
+    }
+    input[readonly] { opacity: 0.6; cursor: default; }
+    select option { background: var(--card); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* RR badge */
+    #rrDisplay {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+    .rr-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rr-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── Buttons ── */
+    .btn {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      padding: 11px 22px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0b0e;
+    }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+    .btn-danger:hover { background: var(--red-dim); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+    .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+    /* ── Stats bar ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .stat-value { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+    .stat-value.positive { color: var(--green); }
+    .stat-value.negative { color: var(--red); }
+    .stat-value.neutral  { color: var(--accent); }
+
+    /* ── Risk management ── */
+    .risk-status {
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    .risk-status.safe    { background: rgba(46,204,113,0.12); border: 1px solid var(--green); color: var(--green); }
+    .risk-status.target  { background: rgba(245,200,66,0.12); border: 1px solid var(--accent); color: var(--accent); }
+    .risk-status.stop    { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+    .risk-status.neutral { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+    thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody tr.profit-row td { border-left: 3px solid var(--green); }
+    tbody tr.loss-row   td { border-left: 3px solid var(--red); }
+    tbody td { padding: 10px 12px; }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-buy   { background: rgba(46,204,113,0.2); color: var(--green); }
+    .badge-sell  { background: rgba(231,76,60,0.2); color: var(--red); }
+    .badge-profit{ background: var(--green-dim); color: var(--green); }
+    .badge-loss  { background: var(--red-dim); color: var(--red); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 999;
+      max-width: 300px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: var(--red);   color: var(--red);   }
+    #toast.warn    { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      place-items: center;
+    }
+    .modal-overlay.open { display: grid; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 30px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal h3 { font-size: 18px; margin-bottom: 10px; }
+    .modal p  { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── Utility ── */
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .neutral  { color: var(--muted); }
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .flex  { display: flex; }
+    .gap-8 { gap: 8px; }
+    .gap-12{ gap: 12px; }
+    .align-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .empty-state div { font-size: 32px; margin-bottom: 8px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .card { padding: 16px; }
+      header { position: relative; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">XAU/<span>USD</span> Journal</div>
+      </div>
+    </div>
+    <div class="header-date" id="headerDate">—</div>
+  </div>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<div class="wrapper">
+
+  <!-- ── STATISTICS ── -->
+  <div class="card" style="margin-top:24px">
+    <div class="card-title">📊 Statistik Keseluruhan</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Total Trade</div>
+        <div class="stat-value neutral" id="statTotal">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value neutral" id="statWinRate">0%</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total P&L</div>
+        <div class="stat-value neutral" id="statPnL">$0.00</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg RR Ratio</div>
+        <div class="stat-value neutral" id="statAvgRR">0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAILY RISK MANAGEMENT ── -->
+  <div class="card">
+    <div class="card-title">🛡️ Daily Risk Management</div>
+    <div class="grid-3">
+      <div class="form-group">
+        <label>Target Profit Harian (USD)</label>
+        <input type="number" id="dailyTarget" placeholder="100" step="0.01" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Batas Kerugian Harian (USD)</label>
+        <input type="number" id="dailyLimit" placeholder="50" step="0.01" min="0" />
+      </div>
+      <div class="rr-card" style="justify-content:center">
+        <div class="rr-label">Total PnL Hari Ini</div>
+        <div id="dailyPnL" style="font-family:var(--mono);font-size:22px;font-weight:800;">$0.00</div>
+        <div id="dailyDate" style="font-size:10px;color:var(--muted);margin-top:4px;">—</div>
+      </div>
+    </div>
+    <div class="risk-status neutral" id="riskStatus">
+      <span>⚪</span>
+      <span>Masukkan target dan batas kerugian untuk aktivasi sistem.</span>
+    </div>
+  </div>
+
+  <!-- ── FORM INPUT ── -->
+  <div class="card">
+    <div class="card-title">✏️ Catat Trade Baru</div>
+
+    <!-- Row 1: Date, Pair, Type -->
+    <div class="grid-3">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="fDate" required />
+      </div>
+      <div class="form-group">
+        <label>Pair</label>
+        <input type="text" id="fPair" value="XAU/USD" readonly />
+      </div>
+      <div class="form-group">
+        <label>Tipe Entry</label>
+        <select id="fType">
+          <option value="Buy">Buy</option>
+          <option value="Sell">Sell</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 2: Entry, SL, TP, Lot -->
+    <div class="grid-4 mt-16">
+      <div class="form-group">
+        <label>Entry Price</label>
+        <input type="number" id="fEntry" placeholder="2350.00" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label>Stop Loss (SL)</label>
+        <input type="number" id="fSL" placeholder="2340.00" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label>Take Profit (TP)</label>
+        <input type="number" id="fTP" placeholder="2370.00" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label>Lot Size</label>
+        <input type="number" id="fLot" placeholder="0.01" step="0.001" min="0.001" required />
+      </div>
+    </div>
+
+    <!-- Row 3: Result, RR, Emotion -->
+    <div class="grid-3 mt-16">
+      <div class="form-group">
+        <label>Hasil (Profit/Loss USD)</label>
+        <input type="number" id="fResult" placeholder="-50.00 atau 120.00" step="0.01" required />
+      </div>
+      <div class="rr-card" style="grid-column:auto">
+        <div class="rr-label">Risk Reward Ratio (auto)</div>
+        <div id="rrDisplay">—</div>
+      </div>
+      <div class="form-group">
+        <label>Emosi Saat Entry</label>
+        <select id="fEmotion">
+          <option value="Tenang">😌 Tenang</option>
+          <option value="Ragu">😟 Ragu</option>
+          <option value="FOMO">😱 FOMO</option>
+          <option value="Percaya Diri">😎 Percaya Diri</option>
+          <option value="Greed">🤑 Greedy</option>
+          <option value="Takut">😰 Takut</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 4: Reason, Eval -->
+    <div class="grid-2 mt-16">
+      <div class="form-group">
+        <label>Alasan Entry</label>
+        <textarea id="fReason" placeholder="Contoh: Breakout support zone, konfirmasi momentum bullish..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Evaluasi Setelah Trade</label>
+        <textarea id="fEval" placeholder="Contoh: Eksekusi baik, namun exit terlalu dini..."></textarea>
+      </div>
+    </div>
+
+    <!-- Row 5: Screenshot -->
+    <div class="form-group mt-16">
+      <label>Screenshot / Link Chart (Opsional)</label>
+      <input type="text" id="fChart" placeholder="https://... atau nama file" />
+    </div>
+
+    <!-- Submit -->
+    <div class="flex gap-12 mt-16" style="flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="submitTrade()">⚡ Simpan Trade</button>
+      <button class="btn btn-ghost" onclick="resetForm()">↩ Reset Form</button>
+    </div>
+  </div>
+
+  <!-- ── TRADE HISTORY TABLE ── -->
+  <div class="card">
+    <div class="flex align-center justify-between" style="margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div class="card-title" style="margin-bottom:0">📋 Riwayat Trading</div>
+      <div class="flex gap-8">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-danger btn-sm" onclick="openResetModal()">🗑 Reset Semua</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('date')"      class="sorted">Tanggal ↕</th>
+            <th onclick="sortTable('type')">Tipe</th>
+            <th onclick="sortTable('entry')">Entry</th>
+            <th onclick="sortTable('sl')">SL</th>
+            <th onclick="sortTable('tp')">TP</th>
+            <th onclick="sortTable('lot')">Lot</th>
+            <th onclick="sortTable('rr')">RR</th>
+            <th onclick="sortTable('result')">Hasil (USD)</th>
+            <th>Emosi</th>
+            <th>Alasan</th>
+            <th>Evaluasi</th>
+            <th>Chart</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tradeTableBody">
+          <!-- Diisi oleh JS -->
+        </tbody>
+      </table>
+      <div class="empty-state" id="emptyState">
+        <div>📭</div>
+        Belum ada data trade. Mulai catat trade pertamamu!
+      </div>
+    </div>
+  </div>
+</div><!-- /wrapper -->
+
+<!-- ── MODAL KONFIRMASI RESET ── -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <h3>⚠️ Reset Semua Data?</h3>
+    <p>Tindakan ini akan menghapus seluruh riwayat trading secara permanen dan tidak dapat dibatalkan.</p>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeResetModal()">Batal</button>
+      <button class="btn btn-danger" onclick="confirmReset()">Ya, Hapus Semua</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST NOTIFIKASI ── -->
+<div id="toast"></div>
+
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+  /* ============================================================
+     STATE & STORAGE
+  ============================================================ */
+  const STORAGE_KEY = 'xauusd_journal_v2';
+  let trades     = [];   // array semua trade
+  let sortKey    = 'date';
+  let sortAsc    = false; // default: terbaru di atas
+
+  /* Ambil data dari localStorage */
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    trades = raw ? JSON.parse(raw) : [];
+  }
+
+  /* Simpan data ke localStorage */
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+  }
+
+  /* ============================================================
+     INISIALISASI
+  ============================================================ */
+  function init() {
+    // Set tanggal default ke hari ini
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fDate').value = today;
+
+    // Update header date
+    document.getElementById('headerDate').textContent =
+      new Date().toLocaleDateString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+    // Kalkulasi RR otomatis saat input berubah
+    ['fEntry','fSL','fTP','fType'].forEach(id =>
+      document.getElementById(id).addEventListener('input', calcRR)
+    );
+
+    // Reload data
+    loadData();
+    renderAll();
+  }
+
+  /* ============================================================
+     KALKULASI RISK REWARD RATIO (OTOMATIS)
+  ============================================================ */
+  function calcRR() {
+    const entry  = parseFloat(document.getElementById('fEntry').value);
+    const sl     = parseFloat(document.getElementById('fSL').value);
+    const tp     = parseFloat(document.getElementById('fTP').value);
+    const type   = document.getElementById('fType').value;
+    const el     = document.getElementById('rrDisplay');
+
+    if (!entry || !sl || !tp) { el.textContent = '—'; return; }
+
+    const risk   = Math.abs(entry - sl);
+    const reward = Math.abs(tp - entry);
+
+    if (risk === 0) { el.textContent = '∞'; return; }
+
+    const rr = (reward / risk).toFixed(2);
+    el.textContent = `1 : ${rr}`;
+    el.style.color = rr >= 1.5 ? 'var(--green)' : rr >= 1 ? 'var(--accent)' : 'var(--red)';
+    return parseFloat(rr);
+  }
+
+  /* ============================================================
+     VALIDASI FORM
+  ============================================================ */
+  function validateForm(data) {
+    const { date, entry, sl, tp, lot, result, reason, type } = data;
+
+    if (!date)   return 'Tanggal wajib diisi.';
+    if (!entry)  return 'Entry price wajib diisi.';
+    if (!sl)     return 'Stop Loss wajib diisi.';
+    if (!tp)     return 'Take Profit wajib diisi.';
+    if (!lot || lot <= 0) return 'Lot size tidak valid.';
+    if (result === '' || isNaN(result)) return 'Hasil trade wajib diisi.';
+    if (!reason.trim()) return 'Alasan entry wajib diisi.';
+
+    // Validasi logika SL / TP vs Entry
+    if (type === 'Buy') {
+      if (sl >= entry) return 'Untuk Buy: SL harus lebih kecil dari Entry.';
+      if (tp <= entry) return 'Untuk Buy: TP harus lebih besar dari Entry.';
+    } else {
+      if (sl <= entry) return 'Untuk Sell: SL harus lebih besar dari Entry.';
+      if (tp >= entry) return 'Untuk Sell: TP harus lebih kecil dari Entry.';
+    }
+
+    return null; // valid
+  }
+
+  /* ============================================================
+     SUBMIT TRADE
+  ============================================================ */
+  function submitTrade() {
+    const data = {
+      id:      Date.now(),
+      date:    document.getElementById('fDate').value,
+      pair:    document.getElementById('fPair').value,
+      type:    document.getElementById('fType').value,
+      entry:   parseFloat(document.getElementById('fEntry').value),
+      sl:      parseFloat(document.getElementById('fSL').value),
+      tp:      parseFloat(document.getElementById('fTP').value),
+      lot:     parseFloat(document.getElementById('fLot').value),
+      result:  parseFloat(document.getElementById('fResult').value),
+      rr:      calcRR() || 0,
+      emotion: document.getElementById('fEmotion').value,
+      reason:  document.getElementById('fReason').value,
+      eval:    document.getElementById('fEval').value,
+      chart:   document.getElementById('fChart').value,
+    };
+
+    // Validasi
+    const err = validateForm(data);
+    if (err) { showToast(err, 'error'); return; }
+
+    // Simpan
+    trades.push(data);
+    saveData();
+    renderAll();
+    resetForm();
+    showToast('✅ Trade berhasil disimpan!', 'success');
+  }
+
+  /* ============================================================
+     RESET FORM
+  ============================================================ */
+  function resetForm() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fDate').value    = today;
+    document.getElementById('fType').value    = 'Buy';
+    document.getElementById('fEntry').value   = '';
+    document.getElementById('fSL').value      = '';
+    document.getElementById('fTP').value      = '';
+    document.getElementById('fLot').value     = '';
+    document.getElementById('fResult').value  = '';
+    document.getElementById('fReason').value  = '';
+    document.getElementById('fEval').value    = '';
+    document.getElementById('fChart').value   = '';
+    document.getElementById('rrDisplay').textContent = '—';
+    document.getElementById('rrDisplay').style.color = 'var(--accent)';
+  }
+
+  /* ============================================================
+     HAPUS SATU TRADE
+  ============================================================ */
+  function deleteTrade(id) {
+    trades = trades.filter(t => t.id !== id);
+    saveData();
+    renderAll();
+    showToast('🗑 Trade dihapus.', 'warn');
+  }
+
+  /* ============================================================
+     MODAL RESET SEMUA
+  ============================================================ */
+  function openResetModal()  { document.getElementById('resetModal').classList.add('open'); }
+  function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
+  function confirmReset() {
+    trades = [];
+    saveData();
+    renderAll();
+    closeResetModal();
+    showToast('🗑 Semua data berhasil dihapus.', 'warn');
+  }
+
+  /* ============================================================
+     SORT TABLE
+  ============================================================ */
+  function sortTable(key) {
+    if (sortKey === key) sortAsc = !sortAsc;
+    else { sortKey = key; sortAsc = false; }
+
+    // Update header highlight
+    document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+    event.target.classList.add('sorted');
+
+    renderTable();
+  }
+
+  function getSortedTrades() {
+    return [...trades].sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      if (typeof va === 'string') va = va.toLowerCase();
+      if (typeof vb === 'string') vb = vb.toLowerCase();
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  /* ============================================================
+     RENDER TABEL
+  ============================================================ */
+  function renderTable() {
+    const tbody    = document.getElementById('tradeTableBody');
+    const empty    = document.getElementById('emptyState');
+    const sorted   = getSortedTrades();
+
+    tbody.innerHTML = '';
+
+    if (sorted.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    sorted.forEach(t => {
+      const isProfit = t.result >= 0;
+      const row = document.createElement('tr');
+      row.className = isProfit ? 'profit-row' : 'loss-row';
+
+      // Chart link atau '-'
+      let chartCell = '—';
+      if (t.chart) {
+        if (t.chart.startsWith('http')) {
+          chartCell = `<a href="${escHtml(t.chart)}" target="_blank" style="color:var(--accent);text-decoration:none;">🔗 Link</a>`;
+        } else {
+          chartCell = `<span style="color:var(--muted)">${escHtml(t.chart)}</span>`;
+        }
+      }
+
+      row.innerHTML = `
+        <td>${formatDate(t.date)}</td>
+        <td><span class="badge ${t.type === 'Buy' ? 'badge-buy' : 'badge-sell'}">${t.type}</span></td>
+        <td>${t.entry.toFixed(2)}</td>
+        <td>${t.sl.toFixed(2)}</td>
+        <td>${t.tp.toFixed(2)}</td>
+        <td>${t.lot}</td>
+        <td>1:${(t.rr||0).toFixed(2)}</td>
+        <td>
+          <span class="badge ${isProfit ? 'badge-profit' : 'badge-loss'}">
+            ${isProfit ? '+' : ''}${t.result.toFixed(2)}
+          </span>
+        </td>
+        <td>${escHtml(t.emotion)}</td>
+        <td style="max-width:160px;white-space:normal;font-size:11px;">${escHtml(t.reason.substring(0,80))}${t.reason.length>80?'…':''}</td>
+        <td style="max-width:160px;white-space:normal;font-size:11px;">${escHtml((t.eval||'').substring(0,80))}${(t.eval||'').length>80?'…':''}</td>
+        <td>${chartCell}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deleteTrade(${t.id})">✕</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  /* ============================================================
+     RENDER STATISTIK
+  ============================================================ */
+  function renderStats() {
+    const total   = trades.length;
+    const wins    = trades.filter(t => t.result > 0).length;
+    const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+    const totalPnL= trades.reduce((s, t) => s + t.result, 0);
+    const avgRR   = total > 0
+      ? (trades.reduce((s, t) => s + (t.rr||0), 0) / total).toFixed(2)
+      : '0.00';
+
+    const pnlEl = document.getElementById('statPnL');
+    pnlEl.textContent = (totalPnL >= 0 ? '+' : '') + '$' + totalPnL.toFixed(2);
+    pnlEl.className   = 'stat-value ' + (totalPnL > 0 ? 'positive' : totalPnL < 0 ? 'negative' : 'neutral');
+
+    document.getElementById('statTotal').textContent   = total;
+    document.getElementById('statWinRate').textContent = winRate + '%';
+    const wrEl = document.getElementById('statWinRate');
+    wrEl.className = 'stat-value ' + (winRate >= 50 ? 'positive' : 'negative');
+    document.getElementById('statAvgRR').textContent   = avgRR;
+  }
+
+  /* ============================================================
+     DAILY RISK MANAGEMENT
+  ============================================================ */
+  function renderRiskManagement() {
+    const today      = new Date().toISOString().split('T')[0];
+    const todayTrades= trades.filter(t => t.date === today);
+    const dayPnL     = todayTrades.reduce((s, t) => s + t.result, 0);
+
+    const target     = parseFloat(document.getElementById('dailyTarget').value) || 0;
+    const limit      = parseFloat(document.getElementById('dailyLimit').value)  || 0;
+
+    const pnlEl  = document.getElementById('dailyPnL');
+    const dateEl = document.getElementById('dailyDate');
+    const status = document.getElementById('riskStatus');
+
+    pnlEl.textContent = (dayPnL >= 0 ? '+$' : '-$') + Math.abs(dayPnL).toFixed(2);
+    pnlEl.style.color = dayPnL > 0 ? 'var(--green)' : dayPnL < 0 ? 'var(--red)' : 'var(--text)';
+    dateEl.textContent = formatDate(today);
+
+    // Logika status
+    if (!target && !limit) {
+      setRiskStatus('neutral', '⚪', 'Masukkan target dan batas kerugian untuk aktivasi sistem.');
+    } else if (limit > 0 && dayPnL <= -limit) {
+      setRiskStatus('stop', '🔴', `STOP TRADING — Batas kerugian harian $${limit.toFixed(2)} tercapai!`);
+    } else if (target > 0 && dayPnL >= target) {
+      setRiskStatus('target', '🏆', `Target harian $${target.toFixed(2)} tercapai! Disarankan berhenti trading.`);
+    } else {
+      setRiskStatus('safe', '🟢', `Status aman. PnL hari ini: ${dayPnL >= 0 ? '+' : ''}$${dayPnL.toFixed(2)}`);
+    }
+  }
+
+  function setRiskStatus(cls, icon, text) {
+    const el = document.getElementById('riskStatus');
+    el.className = `risk-status ${cls}`;
+    el.innerHTML = `<span>${icon}</span><span>${text}</span>`;
+  }
+
+  /* ============================================================
+     RENDER SEMUA
+  ============================================================ */
+  function renderAll() {
+    renderTable();
+    renderStats();
+    renderRiskManagement();
+  }
+
+  /* ============================================================
+     EXPORT CSV
+  ============================================================ */
+  function exportCSV() {
+    if (trades.length === 0) { showToast('Tidak ada data untuk diekspor.', 'warn'); return; }
+
+    const headers = ['Tanggal','Pair','Tipe','Entry','SL','TP','Lot','Hasil','RR','Emosi','Alasan','Evaluasi','Chart'];
+    const rows    = trades.map(t => [
+      t.date, t.pair, t.type, t.entry, t.sl, t.tp, t.lot,
+      t.result, (t.rr||0).toFixed(2), t.emotion,
+      `"${t.reason.replace(/"/g,'""')}"`,
+      `"${(t.eval||'').replace(/"/g,'""')}"`,
+      t.chart || ''
+    ].join(','));
+
+    const csv     = [headers.join(','), ...rows].join('\n');
+    const blob    = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement('a');
+    a.href        = url;
+    a.download    = `xauusd_journal_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📥 CSV berhasil diekspor.', 'success');
+  }
+
+  /* ============================================================
+     TOAST NOTIFIKASI
+  ============================================================ */
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className   = `show ${type}`;
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  /* ============================================================
+     HELPERS
+  ============================================================ */
+  function formatDate(str) {
+    if (!str) return '—';
+    const [y, m, d] = str.split('-');
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return `${d} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  /* ============================================================
+     EVENT LISTENERS RISK MANAGEMENT
+  ============================================================ */
+  document.getElementById('dailyTarget').addEventListener('input', renderRiskManagement);
+  document.getElementById('dailyLimit').addEventListener('input', renderRiskManagement);
+
+  /* ============================================================
+     START
+  ============================================================ */
+  init();
+</script>
+</body>
+</html>
